@@ -1,0 +1,71 @@
+# Move this file to .github/workflows/ci.yml manually.
+# (The OAuth token used to seed this repo lacks the `workflow` scope, so
+# Composio cannot place files under .github/workflows. Run from your local
+# clone:
+#
+#   mkdir -p .github/workflows
+#   git mv docs/ci.yml.template .github/workflows/ci.yml
+#   git commit -m 'ci: move workflow into place'
+#   git push
+# )
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  web:
+    name: Web (Next.js)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/web
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
+      - run: pnpm install --frozen-lockfile
+        working-directory: ./
+      - run: pnpm typecheck
+      - run: pnpm lint
+      - run: pnpm test --if-present
+
+  python:
+    name: Python (pipeline + crew)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v3
+        with:
+          enable-cache: true
+      - run: uv sync --all-extras
+      - run: uv run ruff check .
+      - run: uv run ruff format --check .
+      - run: uv run mypy pipeline crew
+      - run: uv run pytest --cov
+
+  supabase:
+    name: Supabase migration check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+      - run: supabase db lint --schema public
+        continue-on-error: true
+      - run: supabase db start
+      - run: supabase db reset --local
