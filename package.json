@@ -1,0 +1,59 @@
+{
+  "name": "agriflow",
+  "version": "0.1.0",
+  "private": true,
+  "description": "European agricultural goods middleware platform — informational only.",
+  "license": "AGPL-3.0-or-later",
+  "homepage": "https://agriflow.eu",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/brudercode/agriflow.git"
+  },
+  "bugs": {
+    "url": "https://github.com/brudercode/agriflow/issues"
+  },
+  "author": "AgriFlow contributors",
+  "engines": {
+    "node": ">=20.11.0",
+    "pnpm": ">=9.0.0"
+  },
+  "packageManager": "pnpm@9.12.3",
+  "workspaces": [
+    "apps/*"
+  ],
+  "scripts": {
+    "dev": "pnpm -C apps/web dev",
+    "build": "pnpm -C apps/web build",
+    "start": "pnpm -C apps/web start",
+    "lint": "pnpm -C apps/web lint",
+    "typecheck": "pnpm -C apps/web typecheck",
+    "test": "pnpm -C apps/web test",
+    "format": "prettier --write \"**/*.{ts,tsx,md,json,yml,yaml}\"",
+    "format:check": "prettier --check \"**/*.{ts,tsx,md,json,yml,yaml}\"",
+    "db:start": "supabase start",
+    "db:push": "supabase db push",
+    "db:reset": "supabase db reset",
+    "db:diff": "supabase db diff -f new_migration",
+    "py:install": "uv sync",
+    "py:ingest": "uv run python -m pipeline.ingest --source all",
+    "py:crew": "uv run python -m crew.orchestrator",
+    "modal:deploy:ingest": "modal deploy pipeline/modal_app.py",
+    "modal:deploy:crew": "modal deploy crew/orchestrator.py",
+    "prepare": "husky || true"
+  },
+  "devDependencies": {
+    "prettier": "^3.3.3",
+    "husky": "^9.1.6",
+    "lint-staged": "^15.2.10"
+  },
+  "lint-staged": {
+    "*.{ts,tsx,md,json,yml,yaml}": "prettier --write"
+  },
+  "prettier": {
+    "semi": true,
+    "singleQuote": false,
+    "trailingComma": "all",
+    "printWidth": 100,
+    "tabWidth": 2
+  }
+}
